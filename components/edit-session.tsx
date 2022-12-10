@@ -1,4 +1,4 @@
-import { SessionProps } from "../pages/manage-event";
+import { SessionProps } from "./lesson";
 import { useState } from "react";
 
 interface EditSessionProps extends SessionProps {

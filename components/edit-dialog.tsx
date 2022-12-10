@@ -1,4 +1,4 @@
-import { LessonProps, SessionProps } from "../pages/manage-event";
+import { LessonProps } from "./lesson";
 import { useState } from "react";
 import { getDuration } from "../utils/util";
 

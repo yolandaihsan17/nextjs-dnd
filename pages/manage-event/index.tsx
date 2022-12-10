@@ -1,19 +1,12 @@
 import { Eye, More, Edit2, Video, Clock, ImportCurve, AddSquare, Add, Location } from "iconsax-react";
 import { useEffect, useRef, useState } from "react";
 import Layout from "../../components/layout";
-import { getDate, getDuration } from "../../utils/util";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { nanoid } from 'nanoid'
 import EditDialog from "../../components/edit-dialog";
 import EditSession from "../../components/edit-session";
-
-
-// const reorderTasks = (tasks: any, startIndex: any, endIndex: any) => {
-//   const newTaskList = Array.from(tasks);
-//   const [removed] = newTaskList.splice(startIndex, 1);
-//   newTaskList.splice(endIndex, 0, removed);
-//   return newTaskList;
-// };
+import DragIcon from "../../components/drag-icon";
+import Lesson, { LessonProps, SessionProps } from "../../components/lesson";
+import { getDate } from "../../utils/util";
 
 interface EditMode {
   type: 'session' | 'lesson' | null
@@ -64,6 +57,12 @@ export default function ManagePage() {
   const [selectedSession, setSelectedSession] = useState<SessionProps>(session[0])
   const [selectedLesson, setSelectedLesson] = useState<LessonProps>(session[0]?.lessons[0])
 
+  const [lastEdited, setLastEdited] = useState<string>((new Date().toISOString()).replace(/.\d+Z$/g, ""))
+
+  useEffect(() => {
+    setLastEdited((new Date().toISOString()).replace(/.\d+Z$/g, ""))
+  }, [session])
+
   const lessonChanged = (data: LessonProps) => {
     // get available session and save it to temporary variable
     const tempSession = session
@@ -83,7 +82,6 @@ export default function ManagePage() {
   }
 
   const sessionChanged = (data: SessionProps) => {
-    console.log(data)
     // get available session and save it to temporary variable
     const tempSession = session
 
@@ -120,7 +118,6 @@ export default function ManagePage() {
     setEditMode({ type: type, isActive: true })
   }
 
-
   const addSession = () => {
     let tempSession = session
     const newSession = getDefaultSessionProps()
@@ -154,11 +151,7 @@ export default function ManagePage() {
     setEditMode({ isActive: true, type: 'lesson' })
   }
 
-  useEffect(() => {
-    console.log(session)
-  }, [session])
-
-
+  // DnD Functions =========
   const dragItem = useRef<any>(0);
   const dragOverItem = useRef<any>(0);
 
@@ -214,6 +207,7 @@ export default function ManagePage() {
 
     setSession(sessionTemp)
   };
+  // END OF DnD FUNCTIONS=======
 
   return (
     <Layout>
@@ -222,7 +216,7 @@ export default function ManagePage() {
         <div className="flex flex-row items-center justify-between mt-8">
           <div className="flex flex-row items-center justify-start gap-8">
             <h1 className="text-4xl font-semibold">Belajar dan praktek cinematic videography</h1>
-            <p className="text-gray-500 text-sm">Last edited 18 October 2021 | 13:23</p>
+            <p className="text-gray-500 text-sm">Last edited {getDate(lastEdited)}</p>
           </div>
           <button className="flex flex-row items-center justify-center gap-2 rounded-md outline outline-1 outline-purple-600 text-purple-600 p-4 px-8">
             <Eye />
@@ -246,7 +240,6 @@ export default function ManagePage() {
         {session.length > 0 && session.map((session, sessionIndex) => (
           <div className="item-container flex flex-col items-stretch justify-start rounded-md outline outline-1 outline-gray-300 p-8 py-4 mt-8 gap-2"
             key={sessionIndex}
-
           >
             <div className="flex flex-row items-center justify-start text-2xl font-bold gap-2">
               <div draggable
@@ -287,88 +280,6 @@ export default function ManagePage() {
   )
 }
 
-export interface LessonProps {
-  title?: string
-  isRequired?: boolean
-  time?: string
-  isDownloadable?: boolean
-  duration?: number //in seconds
-  id?: string
-  isOnsite?: boolean
-}
-
-export interface SessionProps {
-  title: string
-  lessons: LessonProps[]
-  id: string
-}
-
-interface Lesson extends LessonProps {
-  onEdit: Function
-}
-
-function Lesson(props: Lesson) {
-  return (
-    <div className="flex flex-row items-center justify-between pl-4 py-2 hover:bg-gray-50 hover:shadow-sm select-none" >
-      {/* Left side */}
-      < div className="flex flex-row items-center justify-start gap-4" >
-        <DragIcon />
-        {props.isOnsite ? <Location /> : <Video />}
-        <div className="font-semibold">{props.title}</div>
-        <div className="text-gray-300">|</div>
-        {
-          props.isRequired &&
-          <div className="text-purple-600 font-bold">Required</div>
-        }
-      </div >
-
-      {/* Right Side */}
-      < div className="flex flex-row items-center justify-end gap-4" >
-        {/* Date */}
-        < div className="flex flex-row items-center justify-start gap-2" >
-          <Clock />
-          <div>{getDate(props.time)}
-          </div>
-        </div >
-
-        <Dot />
-
-        {/* Time */}
-        <div className="flex flex-row items-center justify-start gap-2">
-          <Clock />
-          <div>{getDuration(props.duration).hour + ":" + getDuration(props.duration).minute} Min</div>
-        </div>
-
-        <Dot />
-
-        {/* Downloadable */}
-        <button className={`flex flex-row items-center justify-start gap-2 ${!props.isDownloadable ? 'text-gray-300' : ''}`}>
-          <ImportCurve />
-          <div className={` ${!props.isDownloadable ? 'line-through' : ''}`}>Downloadable</div>
-        </button>
-
-        <button className="bg-gray-50 p-2 px-1 rounded-md">
-          <More className="rotate-90" onClick={() => props.onEdit(props.id)} />
-        </button>
-      </div >
-    </div >
-  )
-}
-
-function Dot() {
-  return (
-    <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-  )
-}
-
-function DragIcon() {
-  return (
-    <div className="flex flex-row cursor-grab text-gray-400">
-      <More className="rotate-90 -mx-1 " />
-      <More className="rotate-90 -mx-3" />
-    </div>
-  )
-}
 
 function getDefaultSessionProps() {
   const newSession: SessionProps = {
