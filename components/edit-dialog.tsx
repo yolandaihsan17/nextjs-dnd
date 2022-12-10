@@ -81,7 +81,7 @@ export default function EditDialog(props: EditDialogProps) {
         </div>
 
         <div className="flex flex-row items-center justify-around p-2 py-4 pt-8 gap-2">
-          <button className="bg-purple-600 text-white rounded-md py-2 px-8 w-full" onClick={saveLesson}>Close</button>
+          <button className="bg-purple-700 text-white rounded-md py-2 px-8 w-full" onClick={saveLesson}>Close</button>
         </div>
       </div>
     </div>

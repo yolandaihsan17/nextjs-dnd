@@ -8,5 +8,5 @@ input {
 
 
 .button-primary {
-  @apply flex flex-row items-center justify-center gap-2 rounded-md bg-purple-600 text-white w-fit ml-auto mt-4 p-4 px-8 hover:bg-purple-800
+  @apply flex flex-row items-center justify-center gap-2 rounded-md bg-purple-700 text-white w-fit ml-auto mt-4 p-4 px-8 hover:bg-purple-800
 }

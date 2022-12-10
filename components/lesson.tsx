@@ -1,5 +1,5 @@
 
-import { More, Video, Clock, ImportCurve, Location } from "iconsax-react";
+import { More, Video, Clock, ImportCurve, Location, Trash } from "iconsax-react";
 import DragIcon from "./drag-icon";
 import { getDate } from "../utils/util";
 import Dot from "./dot";
@@ -11,7 +11,7 @@ export interface LessonProps {
   time?: string
   isDownloadable?: boolean
   duration?: number //in seconds
-  id?: string
+  id: string
   isOnsite?: boolean
 }
 
@@ -23,6 +23,7 @@ export interface SessionProps {
 
 interface Lesson extends LessonProps {
   onEdit: Function
+  onDelete: Function
 }
 
 export default function Lesson(props: Lesson) {
@@ -36,7 +37,7 @@ export default function Lesson(props: Lesson) {
         <div className="text-gray-300">|</div>
         {
           props.isRequired &&
-          <div className="text-purple-600 font-bold">Required</div>
+          <div className="text-purple-700 font-bold">Required</div>
         }
       </div >
 
@@ -63,6 +64,10 @@ export default function Lesson(props: Lesson) {
         <button className={`flex flex-row items-center justify-start gap-2 ${!props.isDownloadable ? 'text-gray-300' : ''}`}>
           <ImportCurve />
           <div className={` ${!props.isDownloadable ? 'line-through' : ''}`}>Downloadable</div>
+        </button>
+
+        <button className="text-red-500" onClick={() => props.onDelete()}>
+          <Trash />
         </button>
 
         <button className="bg-gray-50 p-2 px-1 rounded-md">

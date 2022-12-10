@@ -1,4 +1,4 @@
-import { Eye, More, Edit2, Video, Clock, ImportCurve, AddSquare, Add, Location } from "iconsax-react";
+import { Eye, Edit2, AddSquare, Add, Trash } from "iconsax-react";
 import { useEffect, useRef, useState } from "react";
 import Layout from "../../components/layout";
 import { nanoid } from 'nanoid'
@@ -14,42 +14,6 @@ interface EditMode {
 }
 
 export default function ManagePage() {
-
-  // const dummyLesson: LessonProps[] = [{
-  //   title: 'Judul Video 1',
-  //   isRequired: true,
-  //   time: '2019-08-09T06:00:00Z',
-  //   isDownloadable: true,
-  //   duration: 3600,
-  //   id: nanoid(),
-  //   // onChange: () => { }
-  // }, {
-  //   title: 'Judul Video 2',
-  //   isRequired: true,
-  //   time: '2032-12-19T06:00:00Z',
-  //   isDownloadable: true,
-  //   duration: 3660,
-  //   id: nanoid(),
-  //   // onChange: () => { }
-  // }, {
-  //   title: 'Judul Video 3',
-  //   isRequired: true,
-  //   time: '2011-11-03T06:00:00Z',
-  //   isDownloadable: true,
-  //   duration: 3672,
-  //   id: nanoid(),
-  //   // onChange: () => { }
-  // }]
-
-  // const dummySession: SessionProps[] = [{
-  //   title: 'Session 1',
-  //   lessons: dummyLesson,
-  //   id: nanoid(),
-  // }, {
-  //   title: 'Session 2',
-  //   lessons: dummyLesson,
-  //   id: nanoid(),
-  // }]
 
   const [editMode, setEditMode] = useState<EditMode>({ isActive: false, type: 'session' })
   const [session, setSession] = useState<SessionProps[]>([])
@@ -151,6 +115,28 @@ export default function ManagePage() {
     setEditMode({ isActive: true, type: 'lesson' })
   }
 
+  const deleteLesson = (sessionIndex: number, lessonId: string) => {
+    // set temporary session
+    let tempSession = [...session]
+    // get lessons list of that session
+    const tempArr = tempSession[sessionIndex].lessons
+    // remove selected lesson
+    const filtered = tempArr.filter(item => item.id !== lessonId)
+    // set temporary session lesson with filtered lesson
+    tempSession[sessionIndex].lessons = filtered
+    // set session state
+    setSession(tempSession)
+  }
+
+  const deleteSession = (sessionId: string) => {
+    // set temporary session
+    let tempSession = [...session]
+    // remove selected session
+    const filtered = tempSession.filter(item => item.id !== sessionId)
+    // set session state
+    setSession(filtered)
+  }
+
   // DnD Functions =========
   const dragItem = useRef<any>(0);
   const dragOverItem = useRef<any>(0);
@@ -218,7 +204,7 @@ export default function ManagePage() {
             <h1 className="text-4xl font-semibold">Belajar dan praktek cinematic videography</h1>
             <p className="text-gray-500 text-sm">Last edited {getDate(lastEdited)}</p>
           </div>
-          <button className="flex flex-row items-center justify-center gap-2 rounded-md outline outline-1 outline-purple-600 text-purple-600 p-4 px-8">
+          <button className="flex flex-row items-center justify-center gap-2 rounded-md outline outline-1 outline-purple-700 text-purple-700 p-4 px-8">
             <Eye />
             <div>Preview</div>
           </button>
@@ -241,13 +227,19 @@ export default function ManagePage() {
           <div className="item-container flex flex-col items-stretch justify-start rounded-md outline outline-1 outline-gray-300 p-8 py-4 mt-8 gap-2"
             key={sessionIndex}
           >
-            <div className="flex flex-row items-center justify-start text-2xl font-bold gap-2">
-              <div draggable
-                onDragStart={(e) => dragStart(e, sessionIndex)}
-                onDragEnter={(e) => dragEnter(e, sessionIndex)}
-                onDragEnd={drop}><DragIcon /></div>
-              <div className="ml-2">{session.title}</div>
-              <Edit2 size={20} className='text-gray-400 ml-4 cursor-pointer' onClick={() => switchToEditMode(session.id, 'session')} />
+            <div className="flex flex-row items-center justify-between text-2xl font-bold gap-2">
+              <div className="flex flex-row items-center justify-start text-2xl font-bold gap-2">
+                <div draggable
+                  onDragStart={(e) => dragStart(e, sessionIndex)}
+                  onDragEnter={(e) => dragEnter(e, sessionIndex)}
+                  onDragEnd={drop}><DragIcon /></div>
+                <div className="ml-2">{session.title}</div>
+                <Edit2 size={20} className='text-gray-400 ml-4 cursor-pointer' onClick={() => switchToEditMode(session.id, 'session')} />
+              </div>
+
+              <button className="text-red-500" onClick={() => deleteSession(session.id)}>
+                <Trash />
+              </button>
             </div>
 
             <div className="flex flex-col items-stretch justify-start pl-8 mt-4">
@@ -257,7 +249,7 @@ export default function ManagePage() {
                     onDragStart={(e) => dragStartLesson(e, lessonIndex, sessionIndex)}
                     onDragEnter={(e) => dragEnterLesson(e, lessonIndex, sessionIndex)}
                     onDragEnd={dropLesson}>
-                    <Lesson {...item} key={lessonIndex} onEdit={(id: string) => switchToEditMode(session.id, 'lesson', id)} />
+                    <Lesson {...item} key={lessonIndex} onEdit={(id: string) => switchToEditMode(session.id, 'lesson', id)} onDelete={() => deleteLesson(sessionIndex, item.id)} />
                   </div>
                 )) :
                   <div className="text-center font-bold text-yellow-500">No lesson available</div>
@@ -265,7 +257,7 @@ export default function ManagePage() {
             </div>
 
             <div className="flex flex-row items-center justify-start gap-4 mt-4">
-              <AddSquare variant="Bold" className="text-purple-600 cursor-pointer" size={32} onClick={() => addLesson(sessionIndex)} />
+              <AddSquare variant="Bold" className="text-purple-700 cursor-pointer" size={32} onClick={() => addLesson(sessionIndex)} />
               <div className="font-semibold">Add Lesson Material</div>
             </div>
           </div>
@@ -302,3 +294,40 @@ function getDefaultLessonProps() {
   }
   return newLesson
 }
+
+
+  // const dummyLesson: LessonProps[] = [{
+  //   title: 'Judul Video 1',
+  //   isRequired: true,
+  //   time: '2019-08-09T06:00:00Z',
+  //   isDownloadable: true,
+  //   duration: 3600,
+  //   id: nanoid(),
+  //   // onChange: () => { }
+  // }, {
+  //   title: 'Judul Video 2',
+  //   isRequired: true,
+  //   time: '2032-12-19T06:00:00Z',
+  //   isDownloadable: true,
+  //   duration: 3660,
+  //   id: nanoid(),
+  //   // onChange: () => { }
+  // }, {
+  //   title: 'Judul Video 3',
+  //   isRequired: true,
+  //   time: '2011-11-03T06:00:00Z',
+  //   isDownloadable: true,
+  //   duration: 3672,
+  //   id: nanoid(),
+  //   // onChange: () => { }
+  // }]
+
+  // const dummySession: SessionProps[] = [{
+  //   title: 'Session 1',
+  //   lessons: dummyLesson,
+  //   id: nanoid(),
+  // }, {
+  //   title: 'Session 2',
+  //   lessons: dummyLesson,
+  //   id: nanoid(),
+  // }]

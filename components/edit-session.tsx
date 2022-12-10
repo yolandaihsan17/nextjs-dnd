@@ -33,7 +33,7 @@ export default function EditSession(props: EditSessionProps) {
           <input type={'text'} defaultValue={data.title} id='title-input' onChange={(e) => dataChanged('title', e.target.value)}></input>
         </div>
         <div className="flex flex-row items-center justify-around p-2 py-4 pt-8 gap-2">
-          <button className="bg-purple-600 text-white rounded-md py-2 px-8 w-full" onClick={saveSession}>Close</button>
+          <button className="bg-purple-700 text-white rounded-md py-2 px-8 w-full" onClick={saveSession}>Close</button>
         </div>
       </div>
     </div>
