@@ -210,6 +210,16 @@ export default function ManagePage() {
           </button>
         </div>
 
+        <div className="border-b-2 border-gray-200 ">
+          <ul className="flex flex-wrap -mb-px text-sm font-medium text-center">
+            <li className="mr-2">
+              <a href="#" className="inline-flex p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 border-b-purple-700 text-purple-700 group">
+                Curriculum
+              </a>
+            </li>
+          </ul>
+        </div>
+
         <div className="flex flex-row items-center justify-start rounded-md outline outline-1 outline-gray-300 p-8 py-4 mt-8">
           <div>Event Schedule: 24 Oktober 2021, 16.30</div>
         </div>
