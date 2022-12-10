@@ -1,8 +1,10 @@
 import { Eye, More, Edit2, Video, Clock, ImportCurve, AddSquare, Add } from "iconsax-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Layout from "../../components/layout";
 import { getDate, getDuration } from "../../utils/util";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { nanoid } from 'nanoid'
+import EditDialog from "../../components/edit-dialog";
 
 
 const reorderTasks = (tasks: any, startIndex: any, endIndex: any) => {
@@ -12,37 +14,56 @@ const reorderTasks = (tasks: any, startIndex: any, endIndex: any) => {
   return newTaskList;
 };
 
+
+interface EditMode {
+  type: 'session' | 'lesson' | null
+  isActive: boolean
+}
+
 export default function ManagePage() {
 
-  const dummyLesson: LessonProps[] = [{
-    title: 'Judul Video 1',
-    isRequired: true,
-    time: '2019-08-09T06:00:00Z',
-    isDownloadable: true,
-    duration: 3600
-  }, {
-    title: 'Judul Video 2',
-    isRequired: true,
-    time: '2032-12-19T06:00:00Z',
-    isDownloadable: true,
-    duration: 3660
-  }, {
-    title: 'Judul Video 3',
-    isRequired: true,
-    time: '2011-11-03T06:00:00Z',
-    isDownloadable: true,
-    duration: 3672
-  }]
+  // const dummyLesson: LessonProps[] = [{
+  //   title: 'Judul Video 1',
+  //   isRequired: true,
+  //   time: '2019-08-09T06:00:00Z',
+  //   isDownloadable: true,
+  //   duration: 3600,
+  //   id: nanoid(),
+  //   // onChange: () => { }
+  // }, {
+  //   title: 'Judul Video 2',
+  //   isRequired: true,
+  //   time: '2032-12-19T06:00:00Z',
+  //   isDownloadable: true,
+  //   duration: 3660,
+  //   id: nanoid(),
+  //   // onChange: () => { }
+  // }, {
+  //   title: 'Judul Video 3',
+  //   isRequired: true,
+  //   time: '2011-11-03T06:00:00Z',
+  //   isDownloadable: true,
+  //   duration: 3672,
+  //   id: nanoid(),
+  //   // onChange: () => { }
+  // }]
 
-  const dummySession = [{
-    title: 'Session 1',
-    lessons: dummyLesson
-  }, {
-    title: 'Session 2',
-    lessons: dummyLesson
-  }]
+  // const dummySession: SessionProps[] = [{
+  //   title: 'Session 1',
+  //   lessons: dummyLesson,
+  //   id: nanoid(),
+  // }, {
+  //   title: 'Session 2',
+  //   lessons: dummyLesson,
+  //   id: nanoid(),
+  // }]
 
-  const [session, setSession] = useState<SessionProps[]>(dummySession)
+  const [editMode, setEditMode] = useState<EditMode>({ isActive: false, type: 'session' })
+  const [session, setSession] = useState<SessionProps[]>([])
+
+  const [selectedSession, setSelectedSession] = useState<SessionProps>(session[0])
+  const [selectedLesson, setSelectedLesson] = useState<LessonProps>(session[0]?.lessons[0])
+
   // const [placeholderProps, setPlaceholderProps] = useState({});
   // const queryAttr = "data-rbd-drag-handle-draggable-id";
 
@@ -171,6 +192,60 @@ export default function ManagePage() {
   //   });
   // };
 
+  const lessonChanged = (data: LessonProps) => {
+    // get available session and save it to temporary variable
+    const tempSession = session
+
+    //get selected session index 
+    const selectedSessionIndex = tempSession.findIndex(item => item.id === selectedSession.id)
+
+    // get changed lesson index
+    const changedLessonIndex = tempSession[selectedSessionIndex].lessons.findIndex(item => item.id === data.id)
+
+    // then changed the modified lesson in temporary session
+    tempSession[selectedSessionIndex].lessons[changedLessonIndex] = data
+
+    console.log(tempSession, changedLessonIndex, selectedSessionIndex)
+
+    // update session state
+    setSession(tempSession)
+    setEditMode(prev => ({ ...prev, isActive: false }))
+  }
+
+  const switchToEditMode = (sessionId: string, type: 'session' | 'lesson', lessonId?: string) => {
+    // find selected session which to be edited
+    const sessionTemp: any = session.find(item => item.id === sessionId)
+
+    // set selected session
+    setSelectedSession(sessionTemp)
+
+    // find selected lesson which to be edited
+    let lessonTemp: any = lessonId ? sessionTemp.lessons.find((item: any) => item.id === lessonId) : null
+
+    // Set Selected lesson if any lesson found
+    if (lessonTemp) setSelectedLesson(lessonTemp)
+
+    // Activate edit mode, based on the edit type
+    // if we are going to edit session, then type is session, and otherwise for lesson
+    // then the dialog(modal) will appear
+    setEditMode({ type: type, isActive: true })
+  }
+
+
+  const addSession = () => {
+    let tempSession = session
+    const newSession = getDefaultSessionProps()
+    tempSession.unshift(newSession)
+    setSelectedSession(newSession)
+    setSession(tempSession)
+    setEditMode({ isActive: true, type: 'session' })
+  }
+
+
+  useEffect(() => {
+    console.log(session)
+  }, [session])
+
   return (
     <Layout>
       <div className="flex flex-col items-stretch justify-start gap-2 p-4">
@@ -229,19 +304,23 @@ export default function ManagePage() {
           </Droppable>
         </DragDropContext> */}
 
+        {editMode.isActive &&
+          <EditDialog {...selectedLesson} onChange={(data: LessonProps) => { lessonChanged(data) }} type={'lesson'}></EditDialog>
+        }
 
-        {session.map((item, index) => (
+
+        {session.length > 0 && session.map((session, index) => (
           <div className="item-container flex flex-col items-stretch justify-start rounded-md outline outline-1 outline-gray-300 p-8 py-4 mt-8 gap-2" key={index}>
             <div className="flex flex-row items-center justify-start text-2xl font-bold gap-2">
               <DragIcon />
-              <div>{item.title}</div>
-              <Edit2 size={20} className='text-gray-400 ml-4' />
+              <div>{session.title}</div>
+              <Edit2 size={20} className='text-gray-400 ml-4 cursor-pointer' onClick={() => switchToEditMode(session.id, 'session')} />
             </div>
 
             <div className="flex flex-col items-stretch justify-start pl-8 mt-4">
               {
-                item.lessons.map((item, index) => (
-                  <Lesson {...item} key={index} />
+                session.lessons.map((item, index) => (
+                  <Lesson {...item} key={index} onEdit={(id: string) => switchToEditMode(session.id, 'lesson', id)} />
                 ))
               }
             </div>
@@ -253,48 +332,35 @@ export default function ManagePage() {
           </div>
         ))}
 
-
-
-
-        <button className="flex flex-row items-center justify-center gap-2 rounded-md bg-purple-600 text-white w-fit ml-auto mt-4 p-4 px-8">
+        <button className="flex flex-row items-center justify-center gap-2 rounded-md bg-purple-600 text-white w-fit ml-auto mt-4 p-4 px-8" onClick={addSession}>
           <Add />
           <div>Add Session</div>
         </button>
       </div>
-    </Layout>
+    </Layout >
   )
 }
 
-function Dot() {
-  return (
-    <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-  )
+export interface LessonProps {
+  title?: string
+  isRequired?: boolean
+  time?: string
+  isDownloadable?: boolean
+  duration?: number //in seconds
+  id?: string
 }
 
-function DragIcon() {
-  return (
-    <div className="flex flex-row cursor-grab text-gray-400">
-      <More className="rotate-90 -mx-1 " />
-      <More className="rotate-90 -mx-3" />
-    </div>
-  )
-}
-
-
-interface LessonProps {
-  title: string
-  isRequired: boolean
-  time: string
-  isDownloadable: boolean
-  duration: number //in seconds
-}
-
-interface SessionProps {
+export interface SessionProps {
   title: string
   lessons: LessonProps[]
+  id: string
 }
 
-function Lesson(props: LessonProps) {
+interface Lesson extends LessonProps {
+  onEdit: Function
+}
+
+function Lesson(props: Lesson) {
   return (
     <div className="flex flex-row items-center justify-between pl-4 py-2 hover:bg-gray-50 hover:shadow-sm select-none" >
       {/* Left side */}
@@ -337,9 +403,33 @@ function Lesson(props: LessonProps) {
         }
 
         <button className="bg-gray-100 p-2 px-1 rounded-md">
-          <More className="rotate-90" />
+          <More className="rotate-90" onClick={() => props.onEdit(props.id)} />
         </button>
       </div >
     </div >
   )
+}
+
+function Dot() {
+  return (
+    <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+  )
+}
+
+function DragIcon() {
+  return (
+    <div className="flex flex-row cursor-grab text-gray-400">
+      <More className="rotate-90 -mx-1 " />
+      <More className="rotate-90 -mx-3" />
+    </div>
+  )
+}
+
+function getDefaultSessionProps() {
+  const newSession: SessionProps = {
+    title: '',
+    lessons: [],
+    id: nanoid()
+  }
+  return newSession
 }

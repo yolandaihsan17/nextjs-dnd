@@ -8,6 +8,7 @@
   "dependencies": {
     "@next/font": "^13.0.6",
     "iconsax-react": "0.0.8",
+    "nanoid": "^4.0.0",
     "next": "latest",
     "react": "18.2.0",
     "react-beautiful-dnd": "^13.1.1",
