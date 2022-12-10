@@ -5,15 +5,15 @@ import { getDate, getDuration } from "../../utils/util";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { nanoid } from 'nanoid'
 import EditDialog from "../../components/edit-dialog";
+import EditSession from "../../components/edit-session";
 
 
-const reorderTasks = (tasks: any, startIndex: any, endIndex: any) => {
-  const newTaskList = Array.from(tasks);
-  const [removed] = newTaskList.splice(startIndex, 1);
-  newTaskList.splice(endIndex, 0, removed);
-  return newTaskList;
-};
-
+// const reorderTasks = (tasks: any, startIndex: any, endIndex: any) => {
+//   const newTaskList = Array.from(tasks);
+//   const [removed] = newTaskList.splice(startIndex, 1);
+//   newTaskList.splice(endIndex, 0, removed);
+//   return newTaskList;
+// };
 
 interface EditMode {
   type: 'session' | 'lesson' | null
@@ -205,9 +205,26 @@ export default function ManagePage() {
     // then changed the modified lesson in temporary session
     tempSession[selectedSessionIndex].lessons[changedLessonIndex] = data
 
-    console.log(tempSession, changedLessonIndex, selectedSessionIndex)
-
     // update session state
+    setSession(tempSession)
+    setEditMode(prev => ({ ...prev, isActive: false }))
+  }
+
+  const sessionChanged = (data: SessionProps) => {
+    console.log(data)
+    // get available session and save it to temporary variable
+    const tempSession = session
+
+    //get selected session index 
+    const selectedSessionIndex = tempSession.findIndex(item => item.id === selectedSession.id)
+
+    // // get changed lesson index
+    // const changedLessonIndex = tempSession[selectedSessionIndex].lessons.findIndex(item => item.id === data.id)
+
+    // // then changed the modified lesson in temporary session
+    tempSession[selectedSessionIndex] = data
+
+    // // update session state
     setSession(tempSession)
     setEditMode(prev => ({ ...prev, isActive: false }))
   }
@@ -241,6 +258,29 @@ export default function ManagePage() {
     setEditMode({ isActive: true, type: 'session' })
   }
 
+  const addLesson = (sessionIndex: number) => {
+    // const selectedSessionIndex = session.findIndex(item => item.id === selectedSession.id)
+    // Set current active session
+    setSelectedSession(session[sessionIndex])
+
+    // create new lesson
+    let newLesson = getDefaultLessonProps()
+
+    // set temporary session
+    let tempSession = session
+
+    // push new lesson to temp session
+    tempSession[sessionIndex].lessons.unshift(newLesson)
+
+    // set session
+    setSession(tempSession)
+
+    // set selected lesson that will be edited
+    setSelectedLesson(newLesson)
+
+    // display dialog(modal)
+    setEditMode({ isActive: true, type: 'lesson' })
+  }
 
   useEffect(() => {
     console.log(session)
@@ -304,29 +344,34 @@ export default function ManagePage() {
           </Droppable>
         </DragDropContext> */}
 
-        {editMode.isActive &&
-          <EditDialog {...selectedLesson} onChange={(data: LessonProps) => { lessonChanged(data) }} type={'lesson'}></EditDialog>
+        {(editMode.isActive && editMode.type === 'lesson') &&
+          <EditDialog {...selectedLesson} onChange={(data: LessonProps) => { lessonChanged(data) }}></EditDialog>
+        }
+
+        {(editMode.isActive && editMode.type === 'session') &&
+          <EditSession {...selectedSession} onChange={(data: SessionProps) => { sessionChanged(data) }}></EditSession>
         }
 
 
-        {session.length > 0 && session.map((session, index) => (
-          <div className="item-container flex flex-col items-stretch justify-start rounded-md outline outline-1 outline-gray-300 p-8 py-4 mt-8 gap-2" key={index}>
+        {session.length > 0 && session.map((session, sessionIndex) => (
+          <div className="item-container flex flex-col items-stretch justify-start rounded-md outline outline-1 outline-gray-300 p-8 py-4 mt-8 gap-2" key={sessionIndex}>
             <div className="flex flex-row items-center justify-start text-2xl font-bold gap-2">
               <DragIcon />
-              <div>{session.title}</div>
+              <div className="ml-2">{session.title}</div>
               <Edit2 size={20} className='text-gray-400 ml-4 cursor-pointer' onClick={() => switchToEditMode(session.id, 'session')} />
             </div>
 
             <div className="flex flex-col items-stretch justify-start pl-8 mt-4">
               {
-                session.lessons.map((item, index) => (
-                  <Lesson {...item} key={index} onEdit={(id: string) => switchToEditMode(session.id, 'lesson', id)} />
-                ))
+                session.lessons.length > 0 ? session.lessons.map((item, lessonIndex) => (
+                  <Lesson {...item} key={lessonIndex} onEdit={(id: string) => switchToEditMode(session.id, 'lesson', id)} />
+                )) :
+                  <div className="text-center font-bold text-yellow-500">No lesson available</div>
               }
             </div>
 
             <div className="flex flex-row items-center justify-start gap-4 mt-4">
-              <AddSquare variant="Bold" className="text-purple-600 cursor-pointer" size={32} />
+              <AddSquare variant="Bold" className="text-purple-600 cursor-pointer" size={32} onClick={() => addLesson(sessionIndex)} />
               <div className="font-semibold">Add Lesson Material</div>
             </div>
           </div>
@@ -395,12 +440,10 @@ function Lesson(props: Lesson) {
         <Dot />
 
         {/* Downloadable */}
-        {props.isDownloadable &&
-          <button className="flex flex-row items-center justify-start gap-2">
-            <ImportCurve />
-            <div>Downloadable</div>
-          </button>
-        }
+        <button className={`flex flex-row items-center justify-start gap-2 ${!props.isDownloadable ? 'text-gray-300' : ''}`}>
+          <ImportCurve />
+          <div className={` ${!props.isDownloadable ? 'line-through' : ''}`}>Downloadable</div>
+        </button>
 
         <button className="bg-gray-100 p-2 px-1 rounded-md">
           <More className="rotate-90" onClick={() => props.onEdit(props.id)} />
@@ -427,9 +470,21 @@ function DragIcon() {
 
 function getDefaultSessionProps() {
   const newSession: SessionProps = {
-    title: '',
+    title: 'New Session',
     lessons: [],
     id: nanoid()
   }
   return newSession
+}
+
+function getDefaultLessonProps() {
+  const newLesson: LessonProps = {
+    title: 'New Lesson',
+    isRequired: false,
+    time: new Date().toISOString(),
+    isDownloadable: false,
+    duration: 123, //in seconds
+    id: nanoid()
+  }
+  return newLesson
 }
