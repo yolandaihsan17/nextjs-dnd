@@ -1,4 +1,4 @@
-import { Eye, More, Edit2, Video, Clock, ImportCurve, AddSquare, Add } from "iconsax-react";
+import { Eye, More, Edit2, Video, Clock, ImportCurve, AddSquare, Add, Location } from "iconsax-react";
 import { useEffect, useState } from "react";
 import Layout from "../../components/layout";
 import { getDate, getDuration } from "../../utils/util";
@@ -393,6 +393,7 @@ export interface LessonProps {
   isDownloadable?: boolean
   duration?: number //in seconds
   id?: string
+  isOnsite?: boolean
 }
 
 export interface SessionProps {
@@ -411,7 +412,7 @@ function Lesson(props: Lesson) {
       {/* Left side */}
       < div className="flex flex-row items-center justify-start gap-4" >
         <DragIcon />
-        <Video />
+        {props.isOnsite ? <Location /> : <Video />}
         <div className="font-semibold">{props.title}</div>
         <div className="text-gray-300">|</div>
         {
@@ -434,7 +435,7 @@ function Lesson(props: Lesson) {
         {/* Time */}
         <div className="flex flex-row items-center justify-start gap-2">
           <Clock />
-          <div>{getDuration(props.duration)} Min</div>
+          <div>{getDuration(props.duration).hour + ":" + getDuration(props.duration).minute} Min</div>
         </div>
 
         <Dot />
@@ -480,11 +481,12 @@ function getDefaultSessionProps() {
 function getDefaultLessonProps() {
   const newLesson: LessonProps = {
     title: 'New Lesson',
-    isRequired: false,
-    time: new Date().toISOString(),
+    isRequired: true,
+    time: (new Date().toISOString()).replace(/.\d+Z$/g, ""),
     isDownloadable: false,
     duration: 123, //in seconds
-    id: nanoid()
+    id: nanoid(),
+    isOnsite: false
   }
   return newLesson
 }
