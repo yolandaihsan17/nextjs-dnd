@@ -204,7 +204,6 @@ export default function ManagePage() {
 
     lessonItems.splice(dragItemLesson.current, 1);
     lessonItems.splice(dragOverItemLesson.current, 0, dragLessonContent);
-    
 
     sessionTemp[sessionRef.current].lessons = lessonItems
 
@@ -279,7 +278,7 @@ export default function ManagePage() {
           </div>
         ))}
 
-        <button className="flex flex-row items-center justify-center gap-2 rounded-md bg-purple-600 text-white w-fit ml-auto mt-4 p-4 px-8" onClick={addSession}>
+        <button className="button-primary" onClick={addSession}>
           <Add />
           <div>Add Session</div>
         </button>
@@ -348,7 +347,7 @@ function Lesson(props: Lesson) {
           <div className={` ${!props.isDownloadable ? 'line-through' : ''}`}>Downloadable</div>
         </button>
 
-        <button className="bg-gray-100 p-2 px-1 rounded-md">
+        <button className="bg-gray-50 p-2 px-1 rounded-md">
           <More className="rotate-90" onClick={() => props.onEdit(props.id)} />
         </button>
       </div >

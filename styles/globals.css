@@ -5,3 +5,8 @@
 input {
 @apply p-2 rounded-md outline outline-1 outline-purple-300 text-purple-800
 }
+
+
+.button-primary {
+  @apply flex flex-row items-center justify-center gap-2 rounded-md bg-purple-600 text-white w-fit ml-auto mt-4 p-4 px-8 hover:bg-purple-800
+}
